@@ -4,7 +4,7 @@ from fastapi.responses import JSONResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from starlette.exceptions import HTTPException as StartletteHttpException
-
+from schemas import PostCreate, PostResponse
 
 app = FastAPI()
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -55,9 +55,30 @@ def post_page(request: Request, post_id: int):
     )
 
 
-@app.get("/api/posts")
+@app.post("/api/posts", response_model=PostResponse, status_code=status.HTTP_201_CREATED)
+def create_post(post: PostCreate):
+    new_id = max(p["id"] for p in posts) + 1 if posts else 1
+    new_post = {
+        "id": new_id,
+        **post.model_dump(),
+        "date_posted": "April 20, 2910"
+    }
+    posts.append(new_post)
+    return new_post
+
+@app.get("/api/posts", response_model=list[PostResponse])
 def get_posts():
     return posts
+
+
+@app.get("/api/posts/{post_id}", response_model=PostResponse)
+def get_post(post_id: int):
+    post = next((p for p in posts if p["id"] == post_id), None)
+    if not post:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Post not found"
+        )
+    return post
 
 
 @app.exception_handler(StartletteHttpException)
