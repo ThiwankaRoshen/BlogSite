@@ -1,0 +1,53 @@
+{% extends "layout.html" %}
+{% block content %}
+    <section class="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
+        <div class="rounded-3xl border border-cyan-400/20 bg-slate-900/70 p-8 shadow-2xl">
+            <p class="text-sm font-semibold uppercase tracking-[0.35em] text-cyan-300">Featured</p>
+            <h2 class="mt-3 text-3xl font-semibold sm:text-4xl">Build cleaner apps with thoughtful content and modern tools.</h2>
+            <p class="mt-4 text-lg text-slate-300">A simple blog experience designed to feel polished, readable, and easy to explore.</p>
+            <div class="mt-6 flex flex-wrap gap-3">
+                <span class="rounded-full border border-cyan-400/30 bg-cyan-500/10 px-3 py-1 text-sm text-cyan-200">FastAPI</span>
+                <span class="rounded-full border border-cyan-400/30 bg-cyan-500/10 px-3 py-1 text-sm text-cyan-200">Python</span>
+                <span class="rounded-full border border-cyan-400/30 bg-cyan-500/10 px-3 py-1 text-sm text-cyan-200">Developer Notes</span>
+            </div>
+        </div>
+
+        <div class="rounded-3xl border border-white/10 bg-gradient-to-br from-cyan-500/20 to-indigo-500/10 p-8 shadow-xl">
+            <h3 class="text-xl font-semibold">What you’ll find</h3>
+            <ul class="mt-4 space-y-3 text-slate-300">
+                <li class="rounded-2xl border border-white/10 bg-slate-950/40 p-3">Practical tips for building with FastAPI.</li>
+                <li class="rounded-2xl border border-white/10 bg-slate-950/40 p-3">Short notes on Python best practices.</li>
+                <li class="rounded-2xl border border-white/10 bg-slate-950/40 p-3">A clean and welcoming reading experience.</li>
+            </ul>
+        </div>
+    </section>
+
+    <section class="mt-10">
+        <div class="mb-6 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+                <h3 class="text-2xl font-semibold">Recent posts</h3>
+                <p class="text-slate-400">Fresh writing from the blog</p>
+            </div>
+            <span class="text-sm text-slate-400">{{ posts|length }} posts published</span>
+        </div>
+
+        <div class="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+            {% for post in posts %}
+                <a href="{{url_for("post_page", post_id=post.id) }}" class="group rounded-2xl border border-white/10 bg-slate-900/70 p-6 shadow-lg transition hover:-translate-y-1 hover:border-cyan-400/30">
+                    <article>
+                        <div class="mb-4 flex items-center justify-between">
+                            <span class="rounded-full border border-cyan-400/20 bg-cyan-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-cyan-200">Post</span>
+                            <span class="text-sm text-slate-400">{{ post.date_posted }}</span>
+                        </div>
+                        <h2 class="text-xl font-semibold text-white group-hover:text-cyan-300 transition">{{ post.title }}</h2>
+                        <p class="mt-3 text-slate-300">{{ post.content }}</p>
+                        <div class="mt-6 flex items-center justify-between text-sm">
+                            <span class="text-slate-400">By {{ post.author }}</span>
+                            <span class="font-medium text-cyan-300">Read more →</span>
+                        </div>
+                    </article>
+                </a>
+            {% endfor %}
+        </div>
+    </section>
+{% endblock content %}

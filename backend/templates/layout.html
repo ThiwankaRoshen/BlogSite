@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-slate-950">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <title>
+        {% if title %}
+        FastAPI Blog - {{ title }}
+        {% else %}
+        FastAPI Blog
+        {% endif %}
+    </title>
+</head>
+<body class="min-h-full bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 text-slate-100">
+    <div class="mx-auto flex min-h-screen max-w-6xl flex-col px-4 py-8 sm:px-6 lg:px-8">
+        <header class="mb-10 rounded-3xl border border-white/10 bg-white/10 px-6 py-6 shadow-2xl backdrop-blur">
+            <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                    <p class="text-sm font-semibold uppercase tracking-[0.35em] text-cyan-300">FastAPI Blog</p>
+                    <h1 class="mt-2 text-3xl font-semibold sm:text-4xl">Insights, ideas, and practical notes</h1>
+                </div>
+                <a href="/" class="inline-flex items-center justify-center rounded-full border border-cyan-400/30 bg-cyan-500/10 px-4 py-2 text-sm font-medium text-cyan-200 transition hover:bg-cyan-500/20">
+                    Read the latest posts
+                </a>
+            </div>
+        </header>
+
+        {% block content %}
+        {% endblock content %}
+    </div>
+</body>
+</html>
