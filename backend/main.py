@@ -95,7 +95,7 @@ async def general_http_exception_handler(
 ):
 
     if request.url.path.startswith("/api"):
-        return http_exception_handler(request, exception)
+        return await http_exception_handler(request, exception)
 
     message = exception.detail if exception.detail else "An Error Occured."
     return templates.TemplateResponse(
@@ -111,7 +111,7 @@ async def validation_exception_handler(
     request: Request, exception: RequestValidationError
 ):
     if request.url.path.startswith("/api"):
-        return request_validation_exception_handler(request, exception)
+        return await request_validation_exception_handler(request, exception)
 
     return templates.TemplateResponse(
         request,
