@@ -35,6 +35,9 @@
                 </div>
                 <div class="flex flex-wrap items-center gap-3">
                     <span id="auth-status" class="text-sm text-slate-400">Join the community</span>
+                    <button id="login-button" type="button" class="inline-flex items-center justify-center rounded-full border border-cyan-400/30 bg-cyan-500/10 px-4 py-2 text-sm font-medium text-cyan-200 transition hover:bg-cyan-500/20">
+                        Log in
+                    </button>
                     <button id="signup-button" type="button" class="inline-flex items-center justify-center rounded-full border border-cyan-400/30 bg-cyan-500/10 px-4 py-2 text-sm font-medium text-cyan-200 transition hover:bg-cyan-500/20">
                         Sign up
                     </button>
@@ -70,11 +73,38 @@
                     <label class="mb-2 block text-sm text-slate-300" for="signup-email">Email</label>
                     <input id="signup-email" name="email" type="email" class="w-full rounded-2xl border border-white/10 bg-slate-950/60 px-4 py-3 text-slate-100 outline-none ring-0" required>
                 </div>
+                <div>
+                    <label class="mb-2 block text-sm text-slate-300" for="signup-password">Password</label>
+                    <input id="signup-password" name="password" type="password" class="w-full rounded-2xl border border-white/10 bg-slate-950/60 px-4 py-3 text-slate-100 outline-none ring-0" required>
+                </div>
                 <button type="submit" class="w-full rounded-full border border-cyan-400/30 bg-cyan-500/10 px-4 py-3 text-sm font-medium text-cyan-200 transition hover:bg-cyan-500/20">Sign up</button>
             </form>
         </div>
     </div>
 
-    <script src="/static/js/utils.js"></script>
+    <div id="login-modal" class="fixed inset-0 hidden items-center justify-center bg-slate-950/80 px-4" style="z-index: 2147483647; pointer-events: auto;">
+        <div class="relative w-full max-w-md rounded-3xl border border-white/10 bg-slate-900 p-6 shadow-2xl" style="z-index: 2147483647; pointer-events: auto;">
+            <div class="flex items-center justify-between gap-3">
+                <div>
+                    <h2 class="text-xl font-semibold text-white">Log in</h2>
+                    <p class="mt-1 text-sm text-slate-400">Enter your email and password to authenticate.</p>
+                </div>
+                <button id="close-login-modal" type="button" class="rounded-full border border-white/10 px-3 py-1 text-sm text-slate-300 hover:bg-white/10">Close</button>
+            </div>
+            <form id="login-form" class="mt-6 space-y-4">
+                <div>
+                    <label class="mb-2 block text-sm text-slate-300" for="login-email">Email</label>
+                    <input id="login-email" name="email" type="email" class="w-full rounded-2xl border border-white/10 bg-slate-950/60 px-4 py-3 text-slate-100 outline-none ring-0" required>
+                </div>
+                <div>
+                    <label class="mb-2 block text-sm text-slate-300" for="login-password">Password</label>
+                    <input id="login-password" name="password" type="password" class="w-full rounded-2xl border border-white/10 bg-slate-950/60 px-4 py-3 text-slate-100 outline-none ring-0" required>
+                </div>
+                <button type="submit" class="w-full rounded-full border border-cyan-400/30 bg-cyan-500/10 px-4 py-3 text-sm font-medium text-cyan-200 transition hover:bg-cyan-500/20">Log in</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="/static/js/utils.js?v=2"></script>
 </body>
 </html>

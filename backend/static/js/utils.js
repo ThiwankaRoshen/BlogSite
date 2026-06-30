@@ -1,5 +1,6 @@
 const BLOG_USER_ID_KEY = 'blog_user_id';
 const BLOG_USERNAME_KEY = 'blog_username';
+const BLOG_AUTH_TOKEN_KEY = 'blog_auth_token';
 
 function getStoredUser() {
   const userId = localStorage.getItem(BLOG_USER_ID_KEY);
@@ -27,10 +28,33 @@ function clearStoredUser() {
   localStorage.removeItem(BLOG_USERNAME_KEY);
 }
 
+function setAuthToken(token) {
+  if (!token) return;
+  localStorage.setItem(BLOG_AUTH_TOKEN_KEY, token);
+}
+
+function getAuthToken() {
+  return localStorage.getItem(BLOG_AUTH_TOKEN_KEY) || null;
+}
+
+function clearAuthToken() {
+  localStorage.removeItem(BLOG_AUTH_TOKEN_KEY);
+}
+
+async function authFetch(url, opts = {}) {
+  const token = getAuthToken();
+  const headers = new Headers(opts.headers || {});
+  if (token) {
+    headers.set('Authorization', `Bearer ${token}`);
+  }
+  return fetch(url, { ...opts, headers });
+}
+
 function updateAuthUI() {
   const authStatus = document.getElementById('auth-status');
   const signupButton = document.getElementById('signup-button');
   const logoutButton = document.getElementById('logout-button');
+  const loginButton = document.getElementById('login-button');
   const currentUser = getStoredUser();
 
   if (authStatus) {
@@ -52,6 +76,9 @@ function updateAuthUI() {
   if (logoutButton) {
     logoutButton.classList.toggle('hidden', !currentUser);
   }
+  if (loginButton) {
+    loginButton.classList.toggle('hidden', Boolean(currentUser));
+  }
 }
 
 function openSignupModal() {
@@ -66,6 +93,25 @@ function openSignupModal() {
 
 function closeSignupModal() {
   const modal = document.getElementById('signup-modal');
+  if (modal) {
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+    document.body.classList.remove('overflow-hidden');
+  }
+}
+
+function openLoginModal() {
+  closeErrorModal();
+  const modal = document.getElementById('login-modal');
+  if (modal) {
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    document.body.classList.add('overflow-hidden');
+  }
+}
+
+function closeLoginModal() {
+  const modal = document.getElementById('login-modal');
   if (modal) {
     modal.classList.add('hidden');
     modal.classList.remove('flex');
@@ -161,6 +207,41 @@ async function getResponseErrorMessage(response, fallback) {
   return text || fallback;
 }
 
+async function authenticateUser(email, password) {
+  const body = new URLSearchParams();
+  body.set('username', email);
+  body.set('password', password);
+
+  const response = await fetch('/api/users/token', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: body.toString(),
+  });
+
+  if (!response.ok) {
+    const message = await getResponseErrorMessage(response, 'Authentication failed.');
+    throw new Error(message);
+  }
+
+  const data = await response.json();
+  const token = data?.access_token;
+  if (!token) {
+    throw new Error('Authentication did not return a token.');
+  }
+
+  setAuthToken(token);
+
+  const meResp = await authFetch('/api/users/me');
+  if (!meResp.ok) {
+    const message = await getResponseErrorMessage(meResp, 'Unable to fetch user info.');
+    throw new Error(message);
+  }
+
+  const me = await meResp.json();
+  setStoredUser({ id: me.id, username: me.username });
+  return me;
+}
+
 function closeErrorModal() {
   const modal = document.getElementById('error-modal');
   if (modal) {
@@ -212,7 +293,7 @@ function handleCreatePost() {
     }
 
     try {
-      const response = await fetch('/api/posts', {
+      const response = await authFetch('/api/posts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -289,7 +370,7 @@ function handlePostActions() {
     };
 
     try {
-      const response = await fetch(`/api/posts/${postId}`, {
+      const response = await authFetch(`/api/posts/${postId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -326,7 +407,7 @@ function handlePostActions() {
     }
 
     try {
-      const response = await fetch(`/api/posts/${postId}`, {
+      const response = await authFetch(`/api/posts/${postId}`, {
         method: 'DELETE',
       });
 
@@ -361,8 +442,43 @@ document.addEventListener('DOMContentLoaded', () => {
   signupButton?.addEventListener('click', openSignupModal);
   logoutButton?.addEventListener('click', () => {
     clearStoredUser();
+    clearAuthToken();
     updateAuthUI();
     showMessage('You have been logged out.');
+  });
+
+  const loginButton = document.getElementById('login-button');
+  const loginModal = document.getElementById('login-modal');
+  const closeLoginButton = document.getElementById('close-login-modal');
+  const loginForm = document.getElementById('login-form');
+
+  loginButton?.addEventListener('click', openLoginModal);
+  closeLoginButton?.addEventListener('click', closeLoginModal);
+  loginModal?.addEventListener('click', (event) => {
+    if (event.target === loginModal) {
+      closeLoginModal();
+    }
+  });
+
+  loginForm?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const formData = new FormData(loginForm);
+    const email = String(formData.get('email') || '').trim();
+    const password = String(formData.get('password') || '');
+
+    if (!email || !password) {
+      showError('Please provide both email and password.');
+      return;
+    }
+
+    try {
+      const me = await authenticateUser(email, password);
+      updateAuthUI();
+      closeLoginModal();
+      showMessage(`Welcome back, ${me.username}!`);
+    } catch (error) {
+      showError(error.message);
+    }
   });
 
   closeButton?.addEventListener('click', closeSignupModal);
@@ -381,14 +497,23 @@ document.addEventListener('DOMContentLoaded', () => {
   signupForm?.addEventListener('submit', async (event) => {
     event.preventDefault();
 
-    const formData = new FormData(signupForm);
+    const usernameInput = document.getElementById('signup-username');
+    const emailInput = document.getElementById('signup-email');
+    const passwordInput = document.getElementById('signup-password');
+
     const payload = {
-      username: String(formData.get('username') || '').trim(),
-      email: String(formData.get('email') || '').trim(),
+      username: String(usernameInput?.value || '').trim(),
+      email: String(emailInput?.value || '').trim(),
+      password: String(passwordInput?.value || ''),
     };
 
-    if (!payload.username || !payload.email) {
-      showError('Please provide both a username and email.');
+    if (!payload.username || !payload.email || !payload.password) {
+      showError('Please provide a username, email, and password.');
+      return;
+    }
+
+    if (payload.password.length < 8) {
+      showError('Password must be at least 8 characters long.');
       return;
     }
 
@@ -405,11 +530,11 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       const createdUser = await response.json();
-      setStoredUser({ id: createdUser.id, username: createdUser.username });
+      const me = await authenticateUser(payload.email, payload.password);
       updateAuthUI();
       signupForm.reset();
       closeSignupModal();
-      showMessage(`Welcome, ${createdUser.username}!`);
+      showMessage(`Welcome, ${me.username || createdUser.username}!`);
     } catch (error) {
       showError(error.message);
     }
