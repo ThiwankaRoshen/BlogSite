@@ -13,6 +13,7 @@
     </title>
 </head>
 <body class="min-h-full bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 text-slate-100">
+    <div id="global-message" class="fixed bottom-6 right-6 z-40 hidden"></div>
     <div class="mx-auto flex min-h-screen max-w-6xl flex-col px-4 py-8 sm:px-6 lg:px-8">
         <header class="mb-10 rounded-3xl border border-white/10 bg-white/10 px-6 py-6 shadow-2xl backdrop-blur">
             <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -20,14 +21,48 @@
                     <p class="text-sm font-semibold uppercase tracking-[0.35em] text-cyan-300">FastAPI Blog</p>
                     <h1 class="mt-2 text-3xl font-semibold sm:text-4xl">Insights, ideas, and practical notes</h1>
                 </div>
-                <a href="/" class="inline-flex items-center justify-center rounded-full border border-cyan-400/30 bg-cyan-500/10 px-4 py-2 text-sm font-medium text-cyan-200 transition hover:bg-cyan-500/20">
-                    Read the latest posts
-                </a>
+                <div class="flex flex-wrap items-center gap-3">
+                    <span id="auth-status" class="text-sm text-slate-400">Join the community</span>
+                    <button id="signup-button" type="button" class="inline-flex items-center justify-center rounded-full border border-cyan-400/30 bg-cyan-500/10 px-4 py-2 text-sm font-medium text-cyan-200 transition hover:bg-cyan-500/20">
+                        Sign up
+                    </button>
+                    <button id="logout-button" type="button" class="hidden inline-flex items-center justify-center rounded-full border border-rose-400/30 bg-rose-500/10 px-4 py-2 text-sm font-medium text-rose-200 transition hover:bg-rose-500/20">
+                        Log out
+                    </button>
+                    <a href="/" class="inline-flex items-center justify-center rounded-full border border-cyan-400/30 bg-cyan-500/10 px-4 py-2 text-sm font-medium text-cyan-200 transition hover:bg-cyan-500/20">
+                        Read the latest posts
+                    </a>
+                </div>
             </div>
         </header>
 
         {% block content %}
         {% endblock content %}
     </div>
+
+    <div id="signup-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-950/80 px-4">
+        <div class="w-full max-w-md rounded-3xl border border-white/10 bg-slate-900 p-6 shadow-2xl">
+            <div class="flex items-center justify-between gap-3">
+                <div>
+                    <h2 class="text-xl font-semibold text-white">Create your account</h2>
+                    <p class="mt-1 text-sm text-slate-400">Use your details to sign up and manage your posts.</p>
+                </div>
+                <button id="close-signup-modal" type="button" class="rounded-full border border-white/10 px-3 py-1 text-sm text-slate-300 hover:bg-white/10">Close</button>
+            </div>
+            <form id="signup-form" class="mt-6 space-y-4">
+                <div>
+                    <label class="mb-2 block text-sm text-slate-300" for="signup-username">Username</label>
+                    <input id="signup-username" name="username" type="text" class="w-full rounded-2xl border border-white/10 bg-slate-950/60 px-4 py-3 text-slate-100 outline-none ring-0" required>
+                </div>
+                <div>
+                    <label class="mb-2 block text-sm text-slate-300" for="signup-email">Email</label>
+                    <input id="signup-email" name="email" type="email" class="w-full rounded-2xl border border-white/10 bg-slate-950/60 px-4 py-3 text-slate-100 outline-none ring-0" required>
+                </div>
+                <button type="submit" class="w-full rounded-full border border-cyan-400/30 bg-cyan-500/10 px-4 py-3 text-sm font-medium text-cyan-200 transition hover:bg-cyan-500/20">Sign up</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="/static/js/utils.js"></script>
 </body>
 </html>

@@ -28,8 +28,30 @@
                 <h3 class="text-2xl font-semibold">Recent posts</h3>
                 <p class="text-slate-400">Fresh writing from the blog</p>
             </div>
-            <span class="text-sm text-slate-400">{{ posts|length }} posts published</span>
+            <div class="flex flex-wrap items-center gap-3">
+                <span class="text-sm text-slate-400">{{ posts|length }} posts published</span>
+                <button id="create-post-toggle" type="button" class="hidden rounded-full border border-cyan-400/30 bg-cyan-500/10 px-4 py-2 text-sm font-medium text-cyan-200 transition hover:bg-cyan-500/20">
+                    Create post
+                </button>
+            </div>
         </div>
+
+        <form id="create-post-form" class="mb-8 hidden rounded-3xl border border-white/10 bg-slate-900/70 p-6 shadow-lg">
+            <div class="space-y-4">
+                <div>
+                    <label class="mb-2 block text-sm text-slate-300" for="new-post-title">Title</label>
+                    <input id="new-post-title" name="title" type="text" class="w-full rounded-2xl border border-white/10 bg-slate-950/60 px-4 py-3 text-slate-100 outline-none ring-0" required>
+                </div>
+                <div>
+                    <label class="mb-2 block text-sm text-slate-300" for="new-post-content">Content</label>
+                    <textarea id="new-post-content" name="content" rows="6" class="w-full rounded-2xl border border-white/10 bg-slate-950/60 px-4 py-3 text-slate-100 outline-none ring-0" required></textarea>
+                </div>
+                <div class="flex flex-wrap gap-3">
+                    <button type="submit" class="rounded-full border border-cyan-400/30 bg-cyan-500/10 px-4 py-2 text-sm font-medium text-cyan-200 transition hover:bg-cyan-500/20">Publish post</button>
+                    <button id="cancel-create-post" type="button" class="rounded-full border border-white/10 px-4 py-2 text-sm font-medium text-slate-300 transition hover:bg-white/10">Cancel</button>
+                </div>
+            </div>
+        </form>
 
         <div class="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
             {% for post in posts %}
