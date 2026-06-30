@@ -1,5 +1,5 @@
 from typing import Annotated
-from fastapi import APIRouter, Request, HTTPException, status, Depends
+from fastapi import APIRouter, HTTPException, status, Depends
 from schemas import PostResponse, UserUpdate
 from sqlalchemy import select, func
 from sqlalchemy.orm import selectinload
@@ -11,10 +11,9 @@ from database import get_db
 from datetime import timedelta
 from fastapi.security import OAuth2PasswordRequestForm
 from auth import (
+    CurrentUser,
     create_access_token,
-    hash_password,
-    oauth2_scheme,
-    verify_access_token,
+    hash_password, 
     verify_password
 )
 from config import settings
@@ -88,42 +87,25 @@ async def login_for_access_token(
     "/me", response_model=UserPrivate
 )
 async def get_current_user(
-    token: Annotated[str, Depends(oauth2_scheme)],
-    db: Annotated[AsyncSession, Depends(get_db)]   
+    current_user: CurrentUser 
 ):
-    user_id = verify_access_token(token)
-    if user_id is None:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid or expired token",
-            headers={"WWW-Authenticate":"Bearer"}
-        )
-    
-    try:
-        user_id_int = int(user_id)
-    except (TypeError, ValueError):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid or expired token",
-            headers={"WWW-Authenticate":"Bearer"}
-        )
-    result = await db.execute(
-        select(models.User).where(models.User.id == user_id_int)
-    )
-    user = result.scalars().first()
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid or expired token",
-            headers={"WWW-Authenticate":"Bearer"}
-        )
-    return user
+    return current_user
 
     
 @router.patch(
     "/{user_id}", response_model=UserPrivate, status_code=status.HTTP_201_CREATED
 )
-async def update_user_patch(user_id: int, user: UserUpdate, db: Annotated[AsyncSession, Depends(get_db)]):
+async def update_user_patch(
+    user_id: int, 
+    user: UserUpdate, 
+    current_user: CurrentUser,
+    db: Annotated[AsyncSession, Depends(get_db)]):
+    if user_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not Authorized to update this profile."
+        )
+        
     result = await db.execute(
         select(models.User).where(models.User.id == user_id)
     )
@@ -174,7 +156,15 @@ async def update_user_patch(user_id: int, user: UserUpdate, db: Annotated[AsyncS
 @router.delete(
     "/{user_id}", status_code=status.HTTP_204_NO_CONTENT
 )
-async def delete_user(user_id: int, db: Annotated[AsyncSession, Depends(get_db)]):
+async def delete_user(
+    user_id: int,
+    current_user: CurrentUser, 
+    db: Annotated[AsyncSession, Depends(get_db)]):
+    if user_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not Authorized to delete this profile."
+        )
     result = await db.execute(
         select(models.User).where(models.User.id == user_id)
     )
