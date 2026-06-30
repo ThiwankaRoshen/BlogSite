@@ -4,7 +4,7 @@ from schemas import PostCreate, PostResponse
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
-from schemas import PostCreate, PostResponse, PostUpdate, UserResponse
+from schemas import PostCreate, PostResponse, PostUpdate
 import models
 from database import get_db
 

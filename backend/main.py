@@ -86,7 +86,25 @@ async def post_page(request: Request, post_id: int, db: Annotated[AsyncSession, 
         request, "post.html", {"post": post, "title": post.title}
     )
     
+@app.get("/login", include_in_schema=False)
+async def login_page(request: Request):
+    return templates.TemplateResponse(
+        request,
+        "login.html",
+        {
+            "title":"login"
+        }
+    )
 
+@app.get("/register", include_in_schema=False)
+async def register_page(request: Request):
+    return templates.TemplateResponse(
+        request,
+        "register.html",
+        {
+            "title":"Register"
+        }
+    )
 
 
 @app.exception_handler(StartletteHttpException)
