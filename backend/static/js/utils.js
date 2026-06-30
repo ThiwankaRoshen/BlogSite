@@ -55,10 +55,12 @@ function updateAuthUI() {
 }
 
 function openSignupModal() {
+  closeErrorModal();
   const modal = document.getElementById('signup-modal');
   if (modal) {
     modal.classList.remove('hidden');
     modal.classList.add('flex');
+    document.body.classList.add('overflow-hidden');
   }
 }
 
@@ -67,6 +69,7 @@ function closeSignupModal() {
   if (modal) {
     modal.classList.add('hidden');
     modal.classList.remove('flex');
+    document.body.classList.remove('overflow-hidden');
   }
 }
 
@@ -85,6 +88,86 @@ function showMessage(message, isError = false) {
   window.setTimeout(() => {
     container.classList.add('hidden');
   }, 2400);
+}
+
+function openErrorModal(message) {
+  closeSignupModal();
+  const modal = document.getElementById('error-modal');
+  const text = document.getElementById('error-modal-message');
+  if (!modal || !text) {
+    return;
+  }
+
+  text.textContent = message;
+  modal.classList.remove('hidden');
+  modal.classList.add('flex');
+  document.body.classList.add('overflow-hidden');
+}
+
+function showError(message) {
+  openErrorModal(message);
+  showMessage(message, true);
+}
+
+function extractErrorMessage(data, fallback) {
+  const detail = data?.detail;
+
+  if (typeof detail === 'string') {
+    return detail;
+  }
+
+  if (Array.isArray(detail)) {
+    return detail
+      .map((item) => {
+        if (typeof item === 'string') {
+          return item;
+        }
+        if (item && typeof item === 'object') {
+          return item.msg || item.message || item.error || JSON.stringify(item);
+        }
+        return String(item);
+      })
+      .join(', ');
+  }
+
+  if (detail && typeof detail === 'object') {
+    if (typeof detail.message === 'string') {
+      return detail.message;
+    }
+    if (typeof detail.msg === 'string') {
+      return detail.msg;
+    }
+    if (typeof detail.error === 'string') {
+      return detail.error;
+    }
+    if (typeof detail.detail === 'string') {
+      return detail.detail;
+    }
+    return JSON.stringify(detail);
+  }
+
+  return fallback;
+}
+
+async function getResponseErrorMessage(response, fallback) {
+  const contentType = response.headers.get('content-type') || '';
+
+  if (contentType.includes('application/json')) {
+    const data = await response.json().catch(() => ({}));
+    return extractErrorMessage(data, fallback);
+  }
+
+  const text = await response.text().catch(() => '');
+  return text || fallback;
+}
+
+function closeErrorModal() {
+  const modal = document.getElementById('error-modal');
+  if (modal) {
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+    document.body.classList.remove('overflow-hidden');
+  }
 }
 
 function handleCreatePost() {
@@ -113,7 +196,7 @@ function handleCreatePost() {
 
     const currentUser = getStoredUser();
     if (!currentUser) {
-      showMessage('Please sign up before creating a post.', true);
+      showError('Please sign up before creating a post.');
       return;
     }
 
@@ -124,7 +207,7 @@ function handleCreatePost() {
     };
 
     if (!payload.title || !payload.content) {
-      showMessage('Please add both a title and content.', true);
+      showError('Please add both a title and content.');
       return;
     }
 
@@ -136,8 +219,8 @@ function handleCreatePost() {
       });
 
       if (!response.ok) {
-        const data = await response.json().catch(() => ({}));
-        throw new Error(data.detail || 'Unable to create this post.');
+        const message = await getResponseErrorMessage(response, 'Unable to create this post.');
+        throw new Error(message);
       }
 
       createPostForm.reset();
@@ -145,7 +228,7 @@ function handleCreatePost() {
       showMessage('Post published successfully.');
       window.location.reload();
     } catch (error) {
-      showMessage(error.message, true);
+      showError(error.message);
     }
   });
 }
@@ -213,8 +296,8 @@ function handlePostActions() {
       });
 
       if (!response.ok) {
-        const data = await response.json().catch(() => ({}));
-        throw new Error(data.detail || 'Unable to update this post.');
+        const message = await getResponseErrorMessage(response, 'Unable to update this post.');
+        throw new Error(message);
       }
 
       const updatedPost = await response.json();
@@ -233,7 +316,7 @@ function handlePostActions() {
       if (actionStatus) {
         actionStatus.textContent = error.message;
       }
-      showMessage(error.message, true);
+      showError(error.message);
     }
   });
 
@@ -248,8 +331,8 @@ function handlePostActions() {
       });
 
       if (!response.ok) {
-        const data = await response.json().catch(() => ({}));
-        throw new Error(data.detail || 'Unable to delete this post.');
+        const message = await getResponseErrorMessage(response, 'Unable to delete this post.');
+        throw new Error(message);
       }
 
       window.location.href = '/';
@@ -257,7 +340,7 @@ function handlePostActions() {
       if (actionStatus) {
         actionStatus.textContent = error.message;
       }
-      showMessage(error.message, true);
+      showError(error.message);
     }
   });
 }
@@ -272,6 +355,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const signupModal = document.getElementById('signup-modal');
   const closeButton = document.getElementById('close-signup-modal');
   const signupForm = document.getElementById('signup-form');
+  const errorModal = document.getElementById('error-modal');
+  const closeErrorButton = document.getElementById('close-error-modal');
 
   signupButton?.addEventListener('click', openSignupModal);
   logoutButton?.addEventListener('click', () => {
@@ -286,6 +371,12 @@ document.addEventListener('DOMContentLoaded', () => {
       closeSignupModal();
     }
   });
+  closeErrorButton?.addEventListener('click', closeErrorModal);
+  errorModal?.addEventListener('click', (event) => {
+    if (event.target === errorModal) {
+      closeErrorModal();
+    }
+  });
 
   signupForm?.addEventListener('submit', async (event) => {
     event.preventDefault();
@@ -297,7 +388,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     if (!payload.username || !payload.email) {
-      showMessage('Please provide both a username and email.', true);
+      showError('Please provide both a username and email.');
       return;
     }
 
@@ -309,8 +400,8 @@ document.addEventListener('DOMContentLoaded', () => {
       });
 
       if (!response.ok) {
-        const data = await response.json().catch(() => ({}));
-        throw new Error(data.detail || 'Signup failed.');
+        const message = await getResponseErrorMessage(response, 'Signup failed.');
+        throw new Error(message);
       }
 
       const createdUser = await response.json();
@@ -320,7 +411,7 @@ document.addEventListener('DOMContentLoaded', () => {
       closeSignupModal();
       showMessage(`Welcome, ${createdUser.username}!`);
     } catch (error) {
-      showMessage(error.message, true);
+      showError(error.message);
     }
   });
 });
