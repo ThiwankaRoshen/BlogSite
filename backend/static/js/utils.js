@@ -55,6 +55,7 @@ function updateAuthUI() {
   const signupButton = document.getElementById('signup-button');
   const logoutButton = document.getElementById('logout-button');
   const loginButton = document.getElementById('login-button');
+  const accountLink = document.getElementById('account-link');
   const currentUser = getStoredUser();
 
   if (authStatus) {
@@ -78,6 +79,10 @@ function updateAuthUI() {
   }
   if (loginButton) {
     loginButton.classList.toggle('hidden', Boolean(currentUser));
+  }
+
+  if (accountLink) {
+    accountLink.classList.toggle('hidden', !currentUser);
   }
 }
 
@@ -249,6 +254,117 @@ function closeErrorModal() {
     modal.classList.remove('flex');
     document.body.classList.remove('overflow-hidden');
   }
+}
+
+function handleAccountPage() {
+  const accountPage = document.getElementById('account-page');
+  if (!accountPage) {
+    return;
+  }
+
+  const loggedOut = document.getElementById('account-logged-out');
+  const loaded = document.getElementById('account-loaded');
+  const status = document.getElementById('account-status');
+  const summaryUsername = document.getElementById('account-summary-username');
+  const summaryEmail = document.getElementById('account-summary-email');
+  const summaryId = document.getElementById('account-summary-id');
+  const form = document.getElementById('account-form');
+  const usernameInput = document.getElementById('account-username');
+  const emailInput = document.getElementById('account-email');
+  const formStatus = document.getElementById('account-form-status');
+  const loginButton = document.getElementById('account-login-button');
+  const signupButton = document.getElementById('account-signup-button');
+  const refreshButton = document.getElementById('account-refresh-button');
+
+  const showLoggedOut = () => {
+    loggedOut?.classList.remove('hidden');
+    loaded?.classList.add('hidden');
+    if (status) {
+      status.textContent = 'Please sign in to continue';
+    }
+  };
+
+  const showLoaded = (user) => {
+    loggedOut?.classList.add('hidden');
+    loaded?.classList.remove('hidden');
+    if (summaryUsername) summaryUsername.textContent = user.username || '—';
+    if (summaryEmail) summaryEmail.textContent = user.email || '—';
+    if (summaryId) summaryId.textContent = user.id || '—';
+    if (usernameInput) usernameInput.value = user.username || '';
+    if (emailInput) emailInput.value = user.email || '';
+    if (status) {
+      status.textContent = `Signed in as ${user.username}`;
+    }
+  };
+
+  const loadAccount = async () => {
+    const currentUser = getStoredUser();
+    if (!currentUser) {
+      showLoggedOut();
+      return;
+    }
+
+    try {
+      const response = await authFetch('/api/users/me');
+      if (!response.ok) {
+        throw new Error('Unable to load your account.');
+      }
+
+      const user = await response.json();
+      showLoaded(user);
+    } catch (error) {
+      showLoggedOut();
+      showError(error.message);
+    }
+  };
+
+  loginButton?.addEventListener('click', openLoginModal);
+  signupButton?.addEventListener('click', openSignupModal);
+  refreshButton?.addEventListener('click', loadAccount);
+
+  form?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+
+    const payload = {
+      username: String(usernameInput?.value || '').trim(),
+      email: String(emailInput?.value || '').trim(),
+    };
+
+    const currentUser = getStoredUser();
+    if (!currentUser) {
+      showError('Please sign in first.');
+      return;
+    }
+
+    try {
+      const response = await authFetch(`/api/users/${currentUser.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        const message = await getResponseErrorMessage(response, 'Unable to update your profile.');
+        throw new Error(message);
+      }
+
+      const updatedUser = await response.json();
+      setStoredUser({ id: updatedUser.id, username: updatedUser.username });
+      updateAuthUI();
+      showLoaded(updatedUser);
+      if (formStatus) {
+        formStatus.textContent = 'Profile updated successfully.';
+      }
+      showMessage('Profile updated successfully.');
+    } catch (error) {
+      if (formStatus) {
+        formStatus.textContent = error.message;
+      }
+      showError(error.message);
+    }
+  });
+
+  loadAccount();
 }
 
 function handleCreatePost() {
@@ -428,6 +544,7 @@ function handlePostActions() {
 
 document.addEventListener('DOMContentLoaded', () => {
   updateAuthUI();
+  handleAccountPage();
   handleCreatePost();
   handlePostActions();
 

@@ -1,0 +1,74 @@
+{% extends "layout.html" %}
+{% block content %}
+<section id="account-page" class="mx-auto max-w-5xl">
+    <div class="rounded-3xl border border-white/10 bg-slate-900/70 p-8 shadow-2xl">
+        <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+            <div>
+                <p class="text-sm font-semibold uppercase tracking-[0.35em] text-cyan-300">Account</p>
+                <h2 class="mt-2 text-3xl font-semibold">Your profile</h2>
+                <p class="mt-3 text-slate-400">Manage your public details and keep your account information up to date.</p>
+            </div>
+            <div id="account-status" class="rounded-full border border-cyan-400/20 bg-cyan-500/10 px-4 py-2 text-sm text-cyan-200">
+                Loading your profile…
+            </div>
+        </div>
+
+        <div id="account-logged-out" class="mt-8 rounded-3xl border border-dashed border-white/10 bg-slate-950/40 p-8 text-center">
+            <h3 class="text-xl font-semibold text-white">Sign in to view your account</h3>
+            <p class="mt-3 text-slate-400">Use the login or signup options above to continue.</p>
+            <div class="mt-6 flex flex-wrap justify-center gap-3">
+                <button id="account-login-button" type="button" class="rounded-full border border-cyan-400/30 bg-cyan-500/10 px-4 py-2 text-sm font-medium text-cyan-200 transition hover:bg-cyan-500/20">
+                    Log in
+                </button>
+                <button id="account-signup-button" type="button" class="rounded-full border border-cyan-400/30 bg-cyan-500/10 px-4 py-2 text-sm font-medium text-cyan-200 transition hover:bg-cyan-500/20">
+                    Sign up
+                </button>
+            </div>
+        </div>
+
+        <div id="account-loaded" class="mt-8 hidden">
+            <div class="grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
+                <div class="rounded-3xl border border-white/10 bg-slate-950/60 p-6">
+                    <h3 class="text-xl font-semibold text-white">Profile summary</h3>
+                    <dl class="mt-5 space-y-4 text-sm text-slate-300">
+                        <div class="rounded-2xl border border-white/10 bg-slate-900/70 p-4">
+                            <dt class="text-slate-400">Username</dt>
+                            <dd id="account-summary-username" class="mt-1 text-base font-medium text-white">—</dd>
+                        </div>
+                        <div class="rounded-2xl border border-white/10 bg-slate-900/70 p-4">
+                            <dt class="text-slate-400">Email</dt>
+                            <dd id="account-summary-email" class="mt-1 text-base font-medium text-white">—</dd>
+                        </div>
+                        <div class="rounded-2xl border border-white/10 bg-slate-900/70 p-4">
+                            <dt class="text-slate-400">User ID</dt>
+                            <dd id="account-summary-id" class="mt-1 text-base font-medium text-white">—</dd>
+                        </div>
+                    </dl>
+                </div>
+
+                <form id="account-form" class="rounded-3xl border border-white/10 bg-slate-950/60 p-6">
+                    <div class="space-y-4">
+                        <div>
+                            <label class="mb-2 block text-sm text-slate-300" for="account-username">Username</label>
+                            <input id="account-username" name="username" type="text" class="w-full rounded-2xl border border-white/10 bg-slate-900/80 px-4 py-3 text-slate-100 outline-none ring-0" required>
+                        </div>
+                        <div>
+                            <label class="mb-2 block text-sm text-slate-300" for="account-email">Email</label>
+                            <input id="account-email" name="email" type="email" class="w-full rounded-2xl border border-white/10 bg-slate-900/80 px-4 py-3 text-slate-100 outline-none ring-0" required>
+                        </div>
+                        <div class="flex flex-wrap gap-3">
+                            <button type="submit" class="rounded-full border border-cyan-400/30 bg-cyan-500/10 px-4 py-2 text-sm font-medium text-cyan-200 transition hover:bg-cyan-500/20">
+                                Save changes
+                            </button>
+                            <button id="account-refresh-button" type="button" class="rounded-full border border-white/10 px-4 py-2 text-sm font-medium text-slate-300 transition hover:bg-white/10">
+                                Refresh
+                            </button>
+                        </div>
+                        <p id="account-form-status" class="text-sm text-slate-400">Update your profile details below.</p>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock content %}

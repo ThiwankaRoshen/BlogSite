@@ -118,7 +118,8 @@ async def update_user_patch(
     if  user.username and existing_user.username.lower() != user.username.lower():
         result = await db.execute(select(models.User).where(
             func.lower(models.User.username) == user.username.lower(), 
-            models.User.id != user_id )).scalars().first()
+            models.User.id != user_id ))
+        result = result.scalars().first()
         if result:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
