@@ -127,7 +127,12 @@ async def get_user_posts(user_id: int, db: Annotated[AsyncSession, Depends(get_d
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="User Doesn't Exist."
         )
-    result = await db.execute(select(models.Post).options(selectinload(models.Post.author)).where(models.Post.user_id == user.id))
+    result = await db.execute(
+        select(models.Post)
+        .options(selectinload(models.Post.author))
+        .where(models.Post.user_id == user.id)
+        .order_by(models.Post.date_posted.desc())    
+    )
     posts = result.scalars().all()
     return posts
 
