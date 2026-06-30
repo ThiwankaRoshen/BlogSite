@@ -24,7 +24,7 @@ async def create_user(user: UserCreate, db: Annotated[AsyncSession, Depends(get_
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="A User Exist with this username.",
         )
-    result = db.execute(select(models.User).where(models.User.email == user.email))
+    result = await db.execute(select(models.User).where(models.User.email == user.email))
     existing_user = result.scalars().first()
     if existing_user:
         raise HTTPException(
