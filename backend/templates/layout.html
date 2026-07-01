@@ -34,7 +34,10 @@
                     <h1 class="mt-2 text-3xl font-semibold sm:text-4xl">Insights, ideas, and practical notes</h1>
                 </div>
                 <div class="flex flex-wrap items-center gap-3">
-                    <span id="auth-status" class="text-sm text-slate-400">Join the community</span>
+                    <div id="user-menu" class="hidden items-center gap-2 rounded-full border border-white/10 bg-slate-950/40 px-2 py-2">
+                        <img id="user-avatar" src="/static/profile_pics/default.jpeg" alt="User avatar" class="h-9 w-9 rounded-full object-cover">
+                        <span id="auth-status" class="text-sm text-slate-400">Join the community</span>
+                    </div>
                     <button id="login-button" type="button" class="inline-flex items-center justify-center rounded-full border border-cyan-400/30 bg-cyan-500/10 px-4 py-2 text-sm font-medium text-cyan-200 transition hover:bg-cyan-500/20">
                         Log in
                     </button>

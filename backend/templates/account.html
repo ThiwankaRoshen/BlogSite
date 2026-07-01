@@ -30,6 +30,22 @@
             <div class="grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
                 <div class="rounded-3xl border border-white/10 bg-slate-950/60 p-6">
                     <h3 class="text-xl font-semibold text-white">Profile summary</h3>
+                    <div class="mt-5 flex flex-col items-start gap-4 sm:flex-row sm:items-center">
+                        <img id="account-image-preview" src="/static/profile_pics/default.jpeg" alt="Profile preview" class="h-24 w-24 rounded-full border border-cyan-400/20 object-cover shadow-lg">
+                        <div class="flex flex-wrap gap-3">
+                            <label for="account-image-input" class="cursor-pointer rounded-full border border-cyan-400/30 bg-cyan-500/10 px-4 py-2 text-sm font-medium text-cyan-200 transition hover:bg-cyan-500/20">
+                                Choose image
+                            </label>
+                            <input id="account-image-input" type="file" accept="image/*" class="hidden">
+                            <button id="account-image-upload-button" type="button" class="rounded-full border border-cyan-400/30 bg-cyan-500/10 px-4 py-2 text-sm font-medium text-cyan-200 transition hover:bg-cyan-500/20">
+                                Upload
+                            </button>
+                            <button id="account-image-remove-button" type="button" class="rounded-full border border-white/10 px-4 py-2 text-sm font-medium text-slate-300 transition hover:bg-white/10">
+                                Remove
+                            </button>
+                        </div>
+                    </div>
+                    <p id="account-image-status" class="mt-4 text-sm text-slate-400">Upload a square image for the best result.</p>
                     <dl class="mt-5 space-y-4 text-sm text-slate-300">
                         <div class="rounded-2xl border border-white/10 bg-slate-900/70 p-4">
                             <dt class="text-slate-400">Username</dt>

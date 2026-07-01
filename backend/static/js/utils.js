@@ -1,10 +1,12 @@
 const BLOG_USER_ID_KEY = 'blog_user_id';
 const BLOG_USERNAME_KEY = 'blog_username';
+const BLOG_USER_IMAGE_KEY = 'blog_user_image';
 const BLOG_AUTH_TOKEN_KEY = 'blog_auth_token';
 
 function getStoredUser() {
   const userId = localStorage.getItem(BLOG_USER_ID_KEY);
   const username = localStorage.getItem(BLOG_USERNAME_KEY);
+  const imagePath = localStorage.getItem(BLOG_USER_IMAGE_KEY);
 
   if (!userId) {
     return null;
@@ -13,6 +15,7 @@ function getStoredUser() {
   return {
     id: Number(userId),
     username: username || 'Reader',
+    imagePath: imagePath || null,
   };
 }
 
@@ -21,11 +24,17 @@ function setStoredUser(user) {
   if (user.username) {
     localStorage.setItem(BLOG_USERNAME_KEY, user.username);
   }
+  if (user.imagePath || user.image_path) {
+    localStorage.setItem(BLOG_USER_IMAGE_KEY, user.imagePath || user.image_path);
+  } else {
+    localStorage.removeItem(BLOG_USER_IMAGE_KEY);
+  }
 }
 
 function clearStoredUser() {
   localStorage.removeItem(BLOG_USER_ID_KEY);
   localStorage.removeItem(BLOG_USERNAME_KEY);
+  localStorage.removeItem(BLOG_USER_IMAGE_KEY);
 }
 
 function setAuthToken(token) {
@@ -56,6 +65,8 @@ function updateAuthUI() {
   const logoutButton = document.getElementById('logout-button');
   const loginButton = document.getElementById('login-button');
   const accountLink = document.getElementById('account-link');
+  const userMenu = document.getElementById('user-menu');
+  const userAvatar = document.getElementById('user-avatar');
   const currentUser = getStoredUser();
 
   if (authStatus) {
@@ -83,6 +94,16 @@ function updateAuthUI() {
 
   if (accountLink) {
     accountLink.classList.toggle('hidden', !currentUser);
+  }
+
+  if (userMenu) {
+    userMenu.classList.toggle('hidden', !currentUser);
+  }
+
+  if (userAvatar) {
+    const imagePath = currentUser?.imagePath || '/static/profile_pics/default.jpeg';
+    userAvatar.src = imagePath;
+    userAvatar.alt = currentUser ? `${currentUser.username || 'User'} avatar` : 'User avatar';
   }
 }
 
@@ -272,6 +293,11 @@ function handleAccountPage() {
   const usernameInput = document.getElementById('account-username');
   const emailInput = document.getElementById('account-email');
   const formStatus = document.getElementById('account-form-status');
+  const imagePreview = document.getElementById('account-image-preview');
+  const imageInput = document.getElementById('account-image-input');
+  const uploadButton = document.getElementById('account-image-upload-button');
+  const removeButton = document.getElementById('account-image-remove-button');
+  const imageStatus = document.getElementById('account-image-status');
   const loginButton = document.getElementById('account-login-button');
   const signupButton = document.getElementById('account-signup-button');
   const refreshButton = document.getElementById('account-refresh-button');
@@ -292,6 +318,9 @@ function handleAccountPage() {
     if (summaryId) summaryId.textContent = user.id || '—';
     if (usernameInput) usernameInput.value = user.username || '';
     if (emailInput) emailInput.value = user.email || '';
+    if (imagePreview) {
+      imagePreview.src = user.image_path || user.imagePath || '/static/profile_pics/default.jpeg';
+    }
     if (status) {
       status.textContent = `Signed in as ${user.username}`;
     }
@@ -349,7 +378,7 @@ function handleAccountPage() {
       }
 
       const updatedUser = await response.json();
-      setStoredUser({ id: updatedUser.id, username: updatedUser.username });
+      setStoredUser({ id: updatedUser.id, username: updatedUser.username, imagePath: updatedUser.image_path || updatedUser.imagePath });
       updateAuthUI();
       showLoaded(updatedUser);
       if (formStatus) {
@@ -359,6 +388,80 @@ function handleAccountPage() {
     } catch (error) {
       if (formStatus) {
         formStatus.textContent = error.message;
+      }
+      showError(error.message);
+    }
+  });
+
+  uploadButton?.addEventListener('click', async () => {
+    const currentUser = getStoredUser();
+    const file = imageInput?.files?.[0];
+    if (!currentUser) {
+      showError('Please sign in first.');
+      return;
+    }
+    if (!file) {
+      showError('Please choose an image to upload.');
+      return;
+    }
+
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const response = await authFetch(`/api/users/${currentUser.id}/picture`, {
+        method: 'PATCH',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const message = await getResponseErrorMessage(response, 'Unable to upload your profile image.');
+        throw new Error(message);
+      }
+
+      const updatedUser = await response.json();
+      setStoredUser({ id: updatedUser.id, username: updatedUser.username, imagePath: updatedUser.image_path || updatedUser.imagePath });
+      updateAuthUI();
+      showLoaded(updatedUser);
+      if (imageStatus) {
+        imageStatus.textContent = 'Profile image updated.';
+      }
+      showMessage('Profile image updated.');
+    } catch (error) {
+      if (imageStatus) {
+        imageStatus.textContent = error.message;
+      }
+      showError(error.message);
+    }
+  });
+
+  removeButton?.addEventListener('click', async () => {
+    const currentUser = getStoredUser();
+    if (!currentUser) {
+      showError('Please sign in first.');
+      return;
+    }
+
+    try {
+      const response = await authFetch(`/api/users/${currentUser.id}/picture`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        const message = await getResponseErrorMessage(response, 'Unable to remove your profile image.');
+        throw new Error(message);
+      }
+
+      const updatedUser = await response.json();
+      setStoredUser({ id: updatedUser.id, username: updatedUser.username, imagePath: updatedUser.image_path || updatedUser.imagePath });
+      updateAuthUI();
+      showLoaded(updatedUser);
+      if (imageStatus) {
+        imageStatus.textContent = 'Profile image removed.';
+      }
+      showMessage('Profile image removed.');
+    } catch (error) {
+      if (imageStatus) {
+        imageStatus.textContent = error.message;
       }
       showError(error.message);
     }
